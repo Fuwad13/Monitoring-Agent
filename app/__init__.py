@@ -1,0 +1,57 @@
+import time
+from contextlib import asynccontextmanager
+from datetime import timedelta
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+
+from app.config import settings
+from app.log import get_logger
+
+logger = get_logger(__name__, settings.LOG_FILE_PATH)
+
+
+@asynccontextmanager
+async def life_span(app: FastAPI):
+    logger.info("Server is starting......")
+    yield
+    logger.info("Server is shutting down......")
+
+
+version = "v1"
+
+app = FastAPI(
+    title="Monitoring Agent API",
+    description="REST API for Monitoring Agent",
+    version=version,
+    lifespan=life_span,
+)
+
+startup_time = time.time()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/docs", status_code=307)
+
+@app.get("/healthz")
+async def health_check():
+    current_time = time.time()
+    uptime = current_time - startup_time
+    return {
+        "status": "running",
+        "version": version,
+        "uptime": str(timedelta(seconds=uptime)),
+    }
