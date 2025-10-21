@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    LOG_FILE_PATH: str = str(Path.cwd() / "app" / "log" / "app.log")
+    MONGODB_URI: str
+    LOG_FILE_PATH: str = str(Path.cwd() / "app" / "core" / "log" / "app.log")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

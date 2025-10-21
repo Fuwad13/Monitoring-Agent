@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.config import settings
-from app.log import get_logger
+from app.core.config import settings
+from app.core.log import get_logger
 
 logger = get_logger(__name__, settings.LOG_FILE_PATH)
 
@@ -45,6 +45,7 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return RedirectResponse(url="/docs", status_code=307)
+
 
 @app.get("/healthz")
 async def health_check():
