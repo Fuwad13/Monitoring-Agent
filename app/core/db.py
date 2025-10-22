@@ -6,7 +6,11 @@ from beanie import init_beanie
 from pymongo import AsyncMongoClient
 
 from app.core.config import settings
+from app.core.log import get_logger
 from app.modules.user.models import User
+from app.modules.monitoring.models import Target, Snapshot, Change, NotificationLog
+
+logger = get_logger(__name__, settings.LOG_FILE_PATH)
 
 
 class Database:
@@ -20,23 +24,27 @@ class Database:
         """Connect to MongoDB and initialize Beanie"""
         try:
             # Create Motor client with SSL/TLS options
-            self.client = AsyncMongoClient(settings.MONGODB_URI)
+            self.client = AsyncMongoClient(
+                settings.MONGODB_URI, tlsAllowInvalidCertificates=True
+            )
 
             # Test connection with a simple ping
             await self.client.admin.command("ping")
-            print("Ping successful. Connected to MongoDB.")
+            logger.info("Ping successful. Connected to MongoDB.")
 
             # Get database
             self.database = self.client.monitoring_agent
 
-            # Initialize Beanie with User model
-            await init_beanie(database=self.database, document_models=[User])
+            # Initialize Beanie with all document models
+            await init_beanie(
+                database=self.database,
+                document_models=[User, Target, Snapshot, Change, NotificationLog],
+            )
 
-            print("✅ Database connected successfully!")
+            logger.info("✅ Database connected successfully!")
 
         except Exception as e:
-            print(f"❌ Database connection failed: {e}")
-            # Don't raise the exception - let the app start without DB
+            logger.info(f"❌ Database connection failed: {e}")
             self.client = None
             self.database = None
 
@@ -44,7 +52,7 @@ class Database:
         """Close database connection"""
         if self.client:
             self.client.close()
-            print("🔌 Database disconnected")
+            logger.info("🔌 Database disconnected")
 
     def is_connected(self) -> bool:
         """Check if database is connected"""
@@ -62,5 +70,4 @@ class Database:
             return {"status": "unhealthy", "error": str(e)}
 
 
-# Global database instance
 database = Database()
