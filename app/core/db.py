@@ -8,7 +8,6 @@ from pymongo import AsyncMongoClient
 from app.core.config import settings
 from app.core.log import get_logger
 from app.modules.user.models import User
-from app.modules.monitoring.models import Target, Snapshot, Change, NotificationLog
 
 logger = get_logger(__name__, settings.LOG_FILE_PATH)
 
@@ -38,7 +37,7 @@ class Database:
             # Initialize Beanie with all document models
             await init_beanie(
                 database=self.database,
-                document_models=[User, Target, Snapshot, Change, NotificationLog],
+                document_models=[User],
             )
 
             logger.info("✅ Database connected successfully!")

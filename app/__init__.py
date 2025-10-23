@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.v1.routes.auth import router as auth_router
-from app.api.v1.routes.targets import router as targets_router
 from app.core.config import settings
 from app.core.log import get_logger
 from app.core.db import database
@@ -69,4 +68,3 @@ async def health_check():
 
 
 app.include_router(auth_router)
-app.include_router(targets_router)
