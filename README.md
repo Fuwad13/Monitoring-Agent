@@ -25,6 +25,7 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
 - 🔄 **Background Tasks**: Non-blocking monitoring with Celery
 - 📱 **RESTful API**: Full CRUD operations for all resources
 - 🎯 **Snapshot System**: Historical data preservation for LinkedIn targets
+- 🌊 **LangGraph Workflow**: AI-powered agent workflow for intelligent monitoring
 
 ## 🏗️ Architecture Overview
 
@@ -48,24 +49,32 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
           │                      │                      │
           ▼                      ▼                      ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    MongoDB      │    │  Google Gemini  │    │   Email SMTP    │
-│   (Database)    │    │   (AI Analysis) │    │ (Notifications) │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+│    MongoDB      │    │  LangGraph      │    │   Email SMTP    │
+│   (Database)    │    │  Agent Workflow │    │ (Notifications) │
+└─────────────────┘    └─────────┬───────┘    └─────────────────┘
+                                 │
+                    ┌────────────▼────────────┐
+                    │    Google Gemini AI     │
+                    │    (Analysis Engine)    │
+                    └─────────────────────────┘
 ```
 
 ### Data Flow
 
 1. **User Registration & Authentication**
+
    ```
    User → FastAPI → JWT Token → Protected Routes
    ```
 
 2. **Target Creation**
+
    ```
    User → API → MongoDB (MonitoringTarget) → Celery Task Queue
    ```
 
 3. **Monitoring Cycle**
+
    ```
    Celery Beat → Scheduled Task → Celery Worker → Web Scraper
         ↓
@@ -75,6 +84,7 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
    ```
 
 4. **LinkedIn Monitoring Flow**
+
    ```
    LinkedIn Target → Selenium WebDriver → Content Scraping
         ↓
@@ -83,7 +93,16 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
    Change Detected → AI Summary → User Notification
    ```
 
-5. **Real-time Operations**
+5. **LangGraph Agent Workflow**
+
+   ```
+   Target → Scrape Node → Analyze Node → AI Analysis Node → Notify Node
+      ↓         ↓             ↓               ↓              ↓
+   Initialize  Extract    Hash Compare   Gemini Analysis  Email/Console
+   Monitoring  Content    Detect Changes  Generate Summary  Notifications
+   ```
+
+6. **Real-time Operations**
    ```
    Manual Check → API Endpoint → Immediate Celery Task
         ↓
@@ -92,9 +111,12 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
 
 ### Key Architectural Patterns
 
+- **Microservices Design**: Modular components (auth, monitoring, user management)
 - **Event-Driven Architecture**: Celery tasks for asynchronous processing
+- **AI Agent Workflow**: LangGraph state machines for intelligent monitoring processes
 - **Repository Pattern**: Service layers abstracting database operations
 - **Dependency Injection**: FastAPI's built-in DI for clean separation
+- **Snapshot Pattern**: Historical data preservation for comparison
 - **Observer Pattern**: Change detection triggers notifications
 
 ## 🛠️ Tech Stack
@@ -102,6 +124,7 @@ The Monitoring Agent is a comprehensive web scraping and monitoring solution bui
 - **Backend**: FastAPI (Python 3.13+)
 - **Database**: MongoDB with Beanie ODM
 - **Task Queue**: Celery with Redis
+- **Agent Workflow**: LangGraph for AI-powered monitoring workflows
 - **Web Scraping**: Selenium WebDriver, BeautifulSoup4
 - **AI/ML**: Google Generative AI (Gemini)
 - **Authentication**: JWT with PassLib
@@ -173,16 +196,19 @@ CHROME_DRIVER_PATH=./chromedriver.exe
 ### 4. Start Services
 
 **Terminal 1 - Start the API Server:**
+
 ```bash
 fastapi dev app
 ```
 
 **Terminal 2 - Start Celery Worker:**
+
 ```bash
 celery -A app.worker.celery_app worker --loglevel=info
 ```
 
 **Terminal 3 - Start Celery Beat (Scheduler):**
+
 ```bash
 celery -A app.beat.celery_app beat --loglevel=info
 ```
@@ -247,6 +273,7 @@ Montoring-Agent/
 ### Authentication
 
 **Register a new user:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/register" \
   -H "Content-Type: application/json" \
@@ -258,6 +285,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/register" \
 ```
 
 **Login:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
   -H "Content-Type: application/json" \
@@ -270,6 +298,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 ### Monitoring Management
 
 **Add a LinkedIn profile to monitor:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/monitoring/targets" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -282,18 +311,21 @@ curl -X POST "http://localhost:8000/api/v1/monitoring/targets" \
 ```
 
 **Get monitoring targets:**
+
 ```bash
 curl -X GET "http://localhost:8000/api/v1/monitoring/targets" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 **Get detected changes:**
+
 ```bash
 curl -X GET "http://localhost:8000/api/v1/monitoring/changes" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 **Trigger manual check:**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/monitoring/targets/{target_id}/check" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -302,7 +334,7 @@ curl -X POST "http://localhost:8000/api/v1/monitoring/targets/{target_id}/check"
 ### Monitoring Target Types
 
 - `linkedin_profile` - Monitor LinkedIn personal profiles
-- `linkedin_company` - Monitor LinkedIn company pages  
+- `linkedin_company` - Monitor LinkedIn company pages
 - `website` - Monitor general websites
 
 ## 🔧 Configuration
@@ -310,6 +342,7 @@ curl -X POST "http://localhost:8000/api/v1/monitoring/targets/{target_id}/check"
 ### Check Frequencies
 
 Configure how often targets are monitored:
+
 - **3600** - Every hour (default)
 - **1800** - Every 30 minutes
 - **86400** - Daily
@@ -318,6 +351,7 @@ Configure how often targets are monitored:
 ### Email Templates
 
 Email notifications include:
+
 - Target URL and type
 - Change summary generated by AI
 - Timestamp of detection
@@ -326,6 +360,7 @@ Email notifications include:
 ### AI Analysis
 
 The system uses Google Gemini to:
+
 - Analyze content changes
 - Generate human-readable summaries
 - Identify significant updates
