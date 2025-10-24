@@ -9,7 +9,6 @@ from app.modules.user.models import User
 
 logger = get_logger(__name__, settings.LOG_FILE_PATH)
 
-# HTTP Bearer scheme for JWT token
 security = HTTPBearer()
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -17,11 +16,9 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 @router.post("/signup", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def signup(request: RegisterRequest):
-    """Register a new user"""
     try:
         logger.info(f"User registration attempt for email: {request.email}")
 
-        # Register user using auth service
         user = await auth_service.register_user(
             username=request.username,
             email=request.email,

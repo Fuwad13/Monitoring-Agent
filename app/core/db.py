@@ -8,6 +8,7 @@ from pymongo import AsyncMongoClient
 from app.core.config import settings
 from app.core.log import get_logger
 from app.modules.user.models import User
+from app.modules.monitoring.models import MonitoringTarget, ChangeDetection, Snapshot
 
 logger = get_logger(__name__, settings.LOG_FILE_PATH)
 
@@ -37,7 +38,7 @@ class Database:
             # Initialize Beanie with all document models
             await init_beanie(
                 database=self.database,
-                document_models=[User],
+                document_models=[User, MonitoringTarget, ChangeDetection, Snapshot],
             )
 
             logger.info("✅ Database connected successfully!")
@@ -50,7 +51,7 @@ class Database:
     async def disconnect(self):
         """Close database connection"""
         if self.client:
-            self.client.close()
+            await self.client.close()
             logger.info("🔌 Database disconnected")
 
     def is_connected(self) -> bool:

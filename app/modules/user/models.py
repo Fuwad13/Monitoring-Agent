@@ -17,7 +17,11 @@ class User(Document):
         default_factory=lambda: {
             "notifications_enabled": True,
             "email_notifications": True,
+            "email_on_changes": True,
+            "email_on_insights": True,
+            "email_summary": "weekly",  # daily, weekly, monthly, never
             "monitoring_frequency": 60,  # in minutes
+            "min_importance_score": 5,  # Only notify for changes with score >= 5
         }
     )
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

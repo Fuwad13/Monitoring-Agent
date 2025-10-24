@@ -210,8 +210,11 @@ __marimo__/
 temp/
 celerybeat.pid
 celerybeat-schedule
+celerybeat-schedule-*
 *.pid
 
 # Application logs
 *.log
 logs/
+debug_html
+lnkdin_cookies.txt
