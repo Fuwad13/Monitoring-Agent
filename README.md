@@ -262,9 +262,7 @@ Montoring-Agent/
 │           ├── models.py
 │           └── services.py
 │
-├── debug_html/               # Debug output storage
 ├── pyproject.toml           # Project dependencies
-├── lnkdin_cookies.txt       # LinkedIn session cookies
 └── README.md               # This file
 ```
 
